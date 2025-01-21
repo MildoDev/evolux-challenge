@@ -1,0 +1,56 @@
+services:
+  web:
+    build:
+      context: ../../
+      dockerfile: infra/prod/Dockerfile
+    environment:
+      - FLASK_DEBUG=False
+      - SQLALCHEMY_DATABASE_URI=postgresql://${POSTGRES_USER:?err}:${POSTGRES_PASSWORD:?err}@db/${POSTGRES_DB:?err}
+      - SQLALCHEMY_TRACK_MODIFICATIONS=False
+      - DOMAIN=${DOMAIN:?err}
+      - JWT_SECRET_KEY=${JWT_SECRET_KEY:?err}
+    command: >
+      sh -c "
+        poetry run flask --app src db upgrade &&
+        poetry run gunicorn -c infra/prod/gunicorn.conf.py
+      "
+    volumes:
+      - logs_gunicorn:/var/log/gunicorn/${DOMAIN:?err}/
+    depends_on:
+      db:
+        condition: service_healthy
+  db:
+    image: postgres:17.2
+    environment:
+      - POSTGRES_DB=${POSTGRES_DB:?err}
+      - POSTGRES_USER=${POSTGRES_USER:?err}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:?err}
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"
+        ]
+      interval: 10s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+      start_interval: 1s
+    volumes:
+      - postgres_data_prod:/var/lib/postgresql/data/
+  nginx:
+    image: nginx:1.27.3
+    environment:
+      - DOMAIN=${DOMAIN:?err}
+    volumes:
+      - ./nginx.conf.template:/etc/nginx/templates/nginx.conf.template:ro
+      - logs_nginx:/var/log/nginx/${DOMAIN:?err}/
+    ports:
+      - "80:80"
+    depends_on:
+      - web
+
+volumes:
+  postgres_data_prod:
+  logs_gunicorn:
+  logs_nginx:

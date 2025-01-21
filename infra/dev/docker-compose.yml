@@ -1,0 +1,66 @@
+services:
+  web:
+    build:
+      context: ../../
+      dockerfile: infra/dev/Dockerfile
+      args:
+        - USER_ID=${USER_ID:?err}
+        - GROUP_ID=${GROUP_ID:?err}
+    environment:
+      - FLASK_DEBUG=True
+      - FLASK_RUN_HOST=0.0.0.0
+      - SQLALCHEMY_DATABASE_URI=postgresql://${POSTGRES_USER:?err}:${POSTGRES_PASSWORD:?err}@db/${POSTGRES_DB:?err}
+      - SQLALCHEMY_DATABASE_URI_TEST=postgresql://${POSTGRES_USER:?err}:${POSTGRES_PASSWORD:?err}@db-test/${POSTGRES_DB_TEST:?err}
+      - SQLALCHEMY_TRACK_MODIFICATIONS=False
+      - JWT_SECRET_KEY=${JWT_SECRET_KEY:?err}
+    command: >
+      sh -c "
+        poetry run flask --app src db upgrade &&
+        poetry run flask --app src run
+      "
+    ports:
+      - "5000:5000"
+    volumes:
+      - ../../:/code/
+    depends_on:
+      db:
+        condition: service_healthy
+  db:
+    image: postgres:17.2
+    environment:
+      - POSTGRES_DB=${POSTGRES_DB:?err}
+      - POSTGRES_USER=${POSTGRES_USER:?err}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:?err}
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"
+        ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+      start_interval: 1s
+    volumes:
+      - postgres_data_dev:/var/lib/postgresql/data/
+  db-test:
+    image: postgres:17.2
+    profiles:
+      - test
+    environment:
+      - POSTGRES_DB=${POSTGRES_DB_TEST:?err}
+      - POSTGRES_USER=${POSTGRES_USER:?err}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:?err}
+  pgadmin:
+    image: dpage/pgadmin4:8.14
+    environment:
+      - PGADMIN_DEFAULT_EMAIL=${PGADMIN_DEFAULT_EMAIL:?err}
+      - PGADMIN_DEFAULT_PASSWORD=${PGADMIN_DEFAULT_PASSWORD:?err}
+    ports:
+      - "8080:8080"
+    depends_on:
+      - db
+
+volumes:
+  postgres_data_dev:

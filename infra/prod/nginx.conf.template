@@ -1,0 +1,28 @@
+upstream gunicorn_upstream {
+    server web:5000;
+}
+
+server {
+    listen 80;
+    server_name ${DOMAIN};
+
+    access_log /var/log/nginx/${DOMAIN}/access.log;
+    error_log /var/log/nginx/${DOMAIN}/error.log;
+
+    location / {
+        proxy_pass http://gunicorn_upstream;
+        proxy_set_header Host               $host;
+        proxy_set_header X-Real-IP          $remote_addr;
+        proxy_set_header X-Forwarded-For    $proxy_add_x_forwarded_for;
+    }
+}
+
+server {
+    listen 80;
+    server_name *.${DOMAIN};
+
+    access_log /var/log/nginx/${DOMAIN}/access.log;
+    error_log /var/log/nginx/${DOMAIN}/error.log;
+
+    return 308 http://${DOMAIN}$request_uri;
+}
