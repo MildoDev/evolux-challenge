@@ -1,0 +1,24 @@
+{
+  "dockerComposeFile": "docker-compose.yml",
+  "service": "web",
+  "workspaceFolder": "/workspaces/evolux-challenge/",
+  "customizations": {
+    "vscode": {
+      "settings": {
+        "files.insertFinalNewline": true,
+        "files.trimTrailingWhitespace": true,
+        "files.trimFinalNewlines": true,
+        "editor.formatOnSave": true,
+        "editor.rulers": [
+          80,
+          120
+        ],
+        "workbench.iconTheme": "vscode-icons"
+      },
+      "extensions": [
+        "vscode-icons-team.vscode-icons"
+      ]
+    }
+  },
+  "postCreateCommand": "poetry install && poetry run pre-commit install --install-hooks"
+}

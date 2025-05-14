@@ -2,49 +2,24 @@
   "version": "2.0.0",
   "tasks": [
     {
-      "label": "Dev: docker compose up",
+      "label": "Dev: poetry run flask --app src db upgrade",
       "type": "shell",
-      "command": "export USER_ID=`id -u` && export GROUP_ID=`id -g` && docker compose -f infra/dev/docker-compose.yml up"
+      "command": "poetry run flask --app src db upgrade"
     },
     {
-      "label": "Dev: docker compose up --build",
+      "label": "Dev: poetry run flask --app src run",
       "type": "shell",
-      "command": "export USER_ID=`id -u` && export GROUP_ID=`id -g` && docker compose -f infra/dev/docker-compose.yml up --build"
+      "command": "poetry run flask --app src run"
     },
     {
-      "label": "Dev: docker compose stop",
+      "label": "Dev: poetry run coverage run",
       "type": "shell",
-      "command": "export USER_ID=`id -u` && export GROUP_ID=`id -g` && docker compose -f infra/dev/docker-compose.yml stop"
-    },
-    {
-      "label": "Dev: docker compose down",
-      "type": "shell",
-      "command": "export USER_ID=`id -u` && export GROUP_ID=`id -g` && docker compose -f infra/dev/docker-compose.yml down --remove-orphans -v"
-    },
-    {
-      "label": "Dev: docker compose run web poetry run coverage run",
-      "type": "shell",
-      "command": "export USER_ID=`id -u` && export GROUP_ID=`id -g` && docker compose -f infra/dev/docker-compose.yml up -d db-test && docker compose -f infra/dev/docker-compose.yml run --no-deps web poetry run coverage run && docker compose -f infra/dev/docker-compose.yml --profile test down --remove-orphans -v"
-    },
-    {
-      "label": "Dev: docker compose up db-test",
-      "type": "shell",
-      "command": "export USER_ID=`id -u` && export GROUP_ID=`id -g` && docker compose -f infra/dev/docker-compose.yml up db-test"
-    },
-    {
-      "label": "Dev: docker compose down db-test",
-      "type": "shell",
-      "command": "export USER_ID=`id -u` && export GROUP_ID=`id -g` && docker compose -f infra/dev/docker-compose.yml down db-test --remove-orphans -v"
+      "command": "poetry run coverage run"
     },
     {
       "label": "Prod: docker compose up",
       "type": "shell",
       "command": "export USER_ID=`id -u` && export GROUP_ID=`id -g` && docker compose -f infra/prod/docker-compose.yml up"
-    },
-    {
-      "label": "Local: poetry install && poetry run pre-commit install --install-hooks",
-      "type": "shell",
-      "command": "poetry install && poetry run pre-commit install --install-hooks"
     }
   ]
 }
